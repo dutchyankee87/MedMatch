@@ -32,6 +32,7 @@ export default function RegisterAgencyPage() {
           unsafeMetadata={{
             role: "agency_user",
           }}
+          forceRedirectUrl="/agency/dashboard"
         />
         <p className="text-center text-sm text-gray-600 mt-6">
           Bent u een zorgorganisatie?{" "}
