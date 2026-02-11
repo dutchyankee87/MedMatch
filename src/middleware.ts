@@ -19,16 +19,7 @@ export default clerkMiddleware(async (auth, req) => {
   // Role from session claims - configured in Clerk Dashboard to include user.unsafe_metadata.role
   const userRole = (sessionClaims as { role?: string } | undefined)?.role;
 
-  // If logged in and on home page or auth pages, redirect to dashboard
-  if (userId && (pathname === '/' || pathname.startsWith('/auth/'))) {
-    if (userRole === 'agency_user') {
-      return NextResponse.redirect(new URL('/agency/dashboard', req.url));
-    }
-    // Default to org dashboard
-    return NextResponse.redirect(new URL('/org/dashboard', req.url));
-  }
-
-  // Allow public routes for non-logged-in users
+  // Allow public routes
   if (isPublicRoute(req)) {
     return NextResponse.next();
   }
