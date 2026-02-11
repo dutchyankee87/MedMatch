@@ -1,6 +1,6 @@
 import { Webhook } from 'svix';
 import { headers } from 'next/headers';
-import { WebhookEvent } from '@clerk/nextjs/server';
+import { WebhookEvent, clerkClient } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { users, organizations, agencies } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -57,6 +57,14 @@ export async function POST(req: Request) {
         firstName: first_name || null,
         lastName: last_name || null,
         role: role as 'admin' | 'org_user' | 'agency_user',
+      });
+
+      // Update Clerk's publicMetadata with the role so middleware can read it
+      const clerk = await clerkClient();
+      await clerk.users.updateUserMetadata(id, {
+        publicMetadata: {
+          role: role,
+        },
       });
 
       console.log(`User ${id} created with role ${role}`);
