@@ -16,11 +16,8 @@ export default clerkMiddleware(async (auth, req) => {
   const { userId, sessionClaims } = await auth();
   const pathname = req.nextUrl.pathname;
 
-  // Role-based routing helper - check publicMetadata first, then unsafeMetadata as fallback
-  // unsafeMetadata is set immediately on sign-up, publicMetadata is set by webhook
-  const publicMetadata = sessionClaims?.publicMetadata as { role?: string } | undefined;
-  const unsafeMetadata = sessionClaims?.unsafeMetadata as { role?: string } | undefined;
-  const userRole = publicMetadata?.role || unsafeMetadata?.role;
+  // Role from session claims - configured in Clerk Dashboard to include user.unsafe_metadata.role
+  const userRole = (sessionClaims as { role?: string } | undefined)?.role;
 
   // If logged in and on home page or auth pages, redirect to dashboard
   if (userId && (pathname === '/' || pathname.startsWith('/auth/'))) {
