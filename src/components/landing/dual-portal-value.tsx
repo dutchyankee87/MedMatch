@@ -193,7 +193,7 @@ export function DualPortalValue() {
                 asChild
                 className="bg-emerald-600 hover:bg-emerald-700 h-12 px-8"
               >
-                <Link href="/demo/agency/dashboard">
+                <Link href="/auth/register/agency">
                   Start als Uitzendbureau
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>

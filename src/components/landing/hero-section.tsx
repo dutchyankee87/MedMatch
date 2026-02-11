@@ -70,7 +70,7 @@ export function HeroSection() {
                 asChild
                 className="h-12 px-8 border-2 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700"
               >
-                <Link href="/demo/agency/dashboard">
+                <Link href="/auth/register/agency">
                   <Users className="mr-2 h-5 w-5" />
                   Start als Uitzendbureau
                 </Link>
