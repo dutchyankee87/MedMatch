@@ -47,7 +47,7 @@ export function CTASection() {
               asChild
               className="border-2 border-white/30 text-white hover:bg-white/10 h-14 px-10 text-base backdrop-blur-sm"
             >
-              <Link href="/auth/register/agency">
+              <Link href="/demo/agency/dashboard">
                 <Users className="mr-2 h-5 w-5" />
                 Uitzendbureau
               </Link>
