@@ -100,6 +100,8 @@ export const submissions = pgTable('submissions', {
   notes: text('notes'),
   additionalInfo: text('additional_info'),
   status: varchar('status', { length: 20 }).notNull().$type<'pending' | 'accepted' | 'rejected' | 'withdrawn'>().default('pending'),
+  rejectionReason: text('rejection_reason'), // Reason shown to agency when auto-rejected (e.g., "Betere match gevonden")
+  meetingAvailability: text('meeting_availability'), // Org's suggested meeting times for kennismakingsgesprek (set on acceptance)
   submittedAt: timestamp('submitted_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

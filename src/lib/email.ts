@@ -186,6 +186,7 @@ export function submissionStatusNotification(params: {
   organizationName: string;
   status: 'accepted' | 'rejected';
   message?: string;
+  meetingAvailability?: string;
   dashboardUrl: string;
 }) {
   const isAccepted = params.status === 'accepted';
@@ -206,6 +207,7 @@ export function submissionStatusNotification(params: {
             .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
             .details { background: white; padding: 16px; border-radius: 8px; margin: 16px 0; }
             .message { background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; border-radius: 6px; margin: 16px 0; }
+            .meeting { background: #dbeafe; border: 1px solid #3b82f6; padding: 12px; border-radius: 6px; margin: 16px 0; }
             .button { display: inline-block; background: #0066CC; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 16px; }
             .footer { padding: 20px; text-align: center; color: #6b7280; font-size: 14px; }
           </style>
@@ -227,7 +229,15 @@ export function submissionStatusNotification(params: {
               ` : ''}
 
               ${isAccepted ? `
-              <p>De opdrachtbevestiging wordt nu aangemaakt. U ontvangt hiervan bericht.</p>
+              <p>Wij willen graag uw medewerker inzetten. De opdrachtbevestiging wordt nu aangemaakt.</p>
+              ${params.meetingAvailability ? `
+              <div class="meeting">
+                <strong>Kennismakingsgesprek</strong>
+                <p style="margin: 8px 0 0 0;">De teamleider is beschikbaar voor een kennismaking op de volgende momenten:</p>
+                <p style="margin: 8px 0 0 0; white-space: pre-line;">${params.meetingAvailability}</p>
+                <p style="margin: 8px 0 0 0; font-size: 13px; color: #4b5563;">Neem contact op om een tijdslot te reserveren.</p>
+              </div>
+              ` : ''}
               ` : ''}
 
               <a href="${params.dashboardUrl}" class="button">Naar Dashboard</a>

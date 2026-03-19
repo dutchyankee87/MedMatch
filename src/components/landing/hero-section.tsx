@@ -47,8 +47,8 @@ export function HeroSection() {
             {/* Subheadline */}
             <p className="text-xl text-gray-600 max-w-lg leading-relaxed">
               MedMatch verbindt zorgorganisaties direct met uitzendbureaus. Van
-              aanvraag tot factuur, volledig geautomatiseerd met Nederlandse
-              ORT-berekening.
+              aanvraag tot factuur, volledig geautomatiseerd conform
+              CAO-arbeidsvoorwaarden.
             </p>
 
             {/* Dual CTA */}
