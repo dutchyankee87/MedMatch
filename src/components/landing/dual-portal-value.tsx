@@ -33,9 +33,9 @@ const orgFeatures = [
   },
   {
     icon: Clock,
-    title: "Automatische ORT-berekening",
+    title: "Conform CAO-arbeidsvoorwaarden",
     description:
-      "Onze engine berekent onregelmatigheidstoeslag automatisch volgens de laatste CAO-richtlijnen.",
+      "Onze engine past automatisch de juiste arbeidsvoorwaarden toe, inclusief ORT-berekening volgens de laatste CAO-richtlijnen.",
   },
   {
     icon: Receipt,
@@ -80,7 +80,7 @@ const agencyFeatures = [
     icon: Clock,
     title: "Eenvoudige urenregistratie",
     description:
-      "Registreer gewerkte uren met automatische ORT-berekening en goedkeuringsworkflow.",
+      "Registreer gewerkte uren met automatische toepassing van CAO-arbeidsvoorwaarden en goedkeuringsworkflow.",
   },
   {
     icon: Receipt,

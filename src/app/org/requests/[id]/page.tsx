@@ -115,6 +115,8 @@ export default function RequestDetailPage() {
   const [selectedSubmission, setSelectedSubmission] = useState<typeof submissions[0] | null>(null);
   const [actionType, setActionType] = useState<"accept" | "reject" | null>(null);
   const [message, setMessage] = useState("");
+  const [meetingAvailability, setMeetingAvailability] = useState("");
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const handleAction = (submission: typeof submissions[0], action: "accept" | "reject") => {
     setSelectedSubmission(submission);
@@ -134,6 +136,8 @@ export default function RequestDetailPage() {
     setSelectedSubmission(null);
     setActionType(null);
     setMessage("");
+    setMeetingAvailability("");
+    setRejectionReason("");
   };
 
   return (
@@ -306,6 +310,8 @@ export default function RequestDetailPage() {
         setSelectedSubmission(null);
         setActionType(null);
         setMessage("");
+        setMeetingAvailability("");
+        setRejectionReason("");
       }}>
         <DialogContent>
           <DialogHeader>
@@ -335,6 +341,40 @@ export default function RequestDetailPage() {
                 className="mt-2"
               />
             </div>
+
+            {actionType === "accept" && (
+              <div>
+                <label className="text-sm font-medium">
+                  Beschikbaarheid kennismakingsgesprek (optioneel)
+                </label>
+                <p className="text-xs text-gray-500 mt-1">
+                  Wanneer kan de teamleider kennismaken met de kandidaat?
+                </p>
+                <Textarea
+                  value={meetingAvailability}
+                  onChange={(e) => setMeetingAvailability(e.target.value)}
+                  placeholder="bijv. Maandag 3 feb 10:00-12:00, Woensdag 5 feb 14:00-16:00"
+                  className="mt-2"
+                />
+              </div>
+            )}
+
+            {actionType === "reject" && (
+              <div>
+                <label className="text-sm font-medium">
+                  Reden voor afwijzing (optioneel)
+                </label>
+                <p className="text-xs text-gray-500 mt-1">
+                  Deze reden wordt ook gedeeld met andere bureaus als een kandidaat wordt geaccepteerd.
+                </p>
+                <Textarea
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="bijv. Betere match gevonden, meer ervaring op de gewenste afdeling"
+                  className="mt-2"
+                />
+              </div>
+            )}
           </div>
 
           <DialogFooter>
@@ -344,6 +384,8 @@ export default function RequestDetailPage() {
                 setSelectedSubmission(null);
                 setActionType(null);
                 setMessage("");
+                setMeetingAvailability("");
+                setRejectionReason("");
               }}
             >
               Annuleren

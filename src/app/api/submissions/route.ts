@@ -150,7 +150,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { submissionId, status, message } = body;
+    const { submissionId, status, message, rejectionReason, meetingAvailability } = body;
 
     if (!submissionId || !status || !['accepted', 'rejected'].includes(status)) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
@@ -175,9 +175,16 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Update submission status
+    const updateData: Record<string, unknown> = { status, updatedAt: new Date() };
+    if (status === 'accepted' && meetingAvailability) {
+      updateData.meetingAvailability = meetingAvailability;
+    }
+    if (status === 'rejected' && rejectionReason) {
+      updateData.rejectionReason = rejectionReason;
+    }
     await db
       .update(submissions)
-      .set({ status, updatedAt: new Date() })
+      .set(updateData)
       .where(eq(submissions.id, submissionId));
 
     // If accepted, create order confirmation and update request status
@@ -198,19 +205,58 @@ export async function PATCH(req: NextRequest) {
         .set({ status: 'filled', updatedAt: new Date() })
         .where(eq(requests.id, submission.requestId));
 
-      // Reject other pending submissions for this request
+      // Get other pending submissions before rejecting them (to send notifications)
+      const otherSubmissions = await db.query.submissions.findMany({
+        where: and(
+          eq(submissions.requestId, submission.requestId),
+          eq(submissions.status, 'pending')
+        ),
+        with: {
+          agency: true,
+          candidate: true,
+        },
+      });
+
+      // Reject other pending submissions with reason
+      const autoRejectReason = rejectionReason || 'Er is gekozen voor een andere kandidaat met een betere match.';
       await db
         .update(submissions)
-        .set({ status: 'rejected', updatedAt: new Date() })
+        .set({
+          status: 'rejected',
+          rejectionReason: autoRejectReason,
+          updatedAt: new Date(),
+        })
         .where(
           and(
             eq(submissions.requestId, submission.requestId),
             eq(submissions.status, 'pending')
           )
         );
+
+      // Notify rejected agencies
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      for (const otherSub of otherSubmissions) {
+        if (otherSub.agency?.contactEmail) {
+          const rejectionEmail = submissionStatusNotification({
+            agencyName: otherSub.agency.name,
+            candidateName: `${otherSub.candidate?.firstName} ${otherSub.candidate?.lastName}`,
+            requestTitle: submission.request?.title || 'Aanvraag',
+            organizationName: user.organization?.name || 'Organisatie',
+            status: 'rejected',
+            message: autoRejectReason,
+            dashboardUrl: `${appUrl}/agency/dashboard`,
+          });
+
+          await sendEmail({
+            to: otherSub.agency.contactEmail,
+            subject: rejectionEmail.subject,
+            html: rejectionEmail.html,
+          });
+        }
+      }
     }
 
-    // Notify agency
+    // Notify the target agency (accepted or manually rejected)
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const emailContent = submissionStatusNotification({
       agencyName: submission.agency?.name || 'Bureau',
@@ -219,6 +265,7 @@ export async function PATCH(req: NextRequest) {
       organizationName: user.organization?.name || 'Organisatie',
       status: status as 'accepted' | 'rejected',
       message,
+      meetingAvailability: status === 'accepted' ? meetingAvailability : undefined,
       dashboardUrl: `${appUrl}/agency/dashboard`,
     });
 
