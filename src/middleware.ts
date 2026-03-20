@@ -21,6 +21,15 @@ export default clerkMiddleware(async (auth, req) => {
 
   // Allow public routes
   if (isPublicRoute(req)) {
+    // Redirect logged-in users from homepage to their dashboard
+    if (userId && pathname === '/') {
+      if (userRole === 'org_user') {
+        return NextResponse.redirect(new URL('/org/dashboard', req.url));
+      }
+      if (userRole === 'agency_user') {
+        return NextResponse.redirect(new URL('/agency/dashboard', req.url));
+      }
+    }
     return NextResponse.next();
   }
 
