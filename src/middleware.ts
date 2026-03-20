@@ -16,8 +16,9 @@ export default clerkMiddleware(async (auth, req) => {
   const { userId, sessionClaims } = await auth();
   const pathname = req.nextUrl.pathname;
 
-  // Role from session claims - configured in Clerk Dashboard to include user.unsafe_metadata.role
-  const userRole = (sessionClaims as { role?: string } | undefined)?.role;
+  // Role from session claims - publicMetadata is available under sessionClaims.metadata
+  const metadata = (sessionClaims as { metadata?: { role?: string } } | undefined)?.metadata;
+  const userRole = metadata?.role;
 
   // Allow public routes
   if (isPublicRoute(req)) {
