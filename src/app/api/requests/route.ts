@@ -92,6 +92,10 @@ export async function POST(req: NextRequest) {
       endDate,
       hoursPerWeek,
       specialRequirements,
+      criteria,
+      schedulePreferences,
+      vacationDates,
+      maxTravelDistance,
     } = body;
 
     // Validate required fields
@@ -113,6 +117,10 @@ export async function POST(req: NextRequest) {
         endDate,
         hoursPerWeek,
         specialRequirements,
+        criteria: criteria || undefined,
+        schedulePreferences: schedulePreferences || undefined,
+        vacationDates: vacationDates || undefined,
+        maxTravelDistance: maxTravelDistance || undefined,
         status: 'open',
         broadcastAt: new Date(),
       })

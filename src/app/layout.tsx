@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { nlNL } from "@clerk/localizations";
 import { Toaster } from "@/components/ui/toaster";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -21,7 +22,9 @@ export default function RootLayout({
     <ClerkProvider localization={nlNL}>
       <html lang="nl">
         <body className={`${inter.className} antialiased`}>
-          {children}
+          <Providers>
+            {children}
+          </Providers>
           <Toaster />
         </body>
       </html>

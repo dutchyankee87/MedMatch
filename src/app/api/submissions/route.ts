@@ -14,6 +14,7 @@ import {
   submissionReceivedNotification,
   submissionStatusNotification,
 } from '@/lib/email';
+import { calculateMatchScore } from '@/lib/cv-parser';
 
 // POST /api/submissions - Submit a candidate
 export async function POST(req: NextRequest) {
@@ -35,7 +36,10 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { requestId, candidateId, proposedRate, cvUrl, notes, additionalInfo } = body;
+    const {
+      requestId, candidateId, proposedRate, cvUrl, notes, additionalInfo,
+      criteriaResponses, candidateVacationDates, cvParsedData, profileSummary,
+    } = body;
 
     // Validate required fields
     if (!requestId || !candidateId || !proposedRate) {
@@ -83,6 +87,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Candidate already submitted for this request' }, { status: 400 });
     }
 
+    // Calculate match score if criteria responses provided
+    let matchScore: number | undefined;
+    if (criteriaResponses && request.criteria) {
+      matchScore = calculateMatchScore(request.criteria, criteriaResponses);
+    }
+
     // Create submission
     const [newSubmission] = await db
       .insert(submissions)
@@ -94,6 +104,11 @@ export async function POST(req: NextRequest) {
         cvUrl: cvUrl || candidate.cvUrl,
         notes,
         additionalInfo,
+        criteriaResponses: criteriaResponses || undefined,
+        candidateVacationDates: candidateVacationDates || undefined,
+        cvParsedData: cvParsedData || undefined,
+        profileSummary: profileSummary || undefined,
+        matchScore,
         status: 'pending',
       })
       .returning();
