@@ -157,6 +157,85 @@ This Dutch phrase from the requirements guided every design decision:
 3. Push the schema: `npm run db:push`
 4. Run dev server: `npm run dev`
 
+## The Big Upgrade: Structured Criteria + AI CV Parsing
+
+### From Free Text to Structured Data
+
+The original request form had a free-text "special requirements" field. Agencies had to read it and guess what mattered. Now there's a **structured criteria template system**.
+
+When a hospital selects "Verpleegkundige IC", the system auto-loads relevant criteria from `src/lib/criteria-templates.ts`:
+- IC-diploma (Vereist)
+- BIG-registratie (Vereist)
+- ALS-diploma (Vereist)
+- BRAUN infuuspompen (Gewenst)
+- Dräger beademing (Gewenst)
+
+The criteria are stored as JSONB on the `requests` table. We chose JSONB over normalized tables because different functions have completely different criteria shapes — a generic key/value table would have been equally denormalized but with more complexity.
+
+### The 4-Step Wizard
+
+The request creation form went from 3 to 4 steps:
+1. **Functie & Afdeling** — auto-loads criteria template
+2. **Criteria** — toggle Vereist/Gewenst, add custom criteria, remove irrelevant ones
+3. **Periode & Beschikbaarheid** — dates, hours/week, roosterwensen, vakantie, max reisafstand
+4. **Overzicht & Bevestigen** — summary with all criteria badges, submit to real API
+
+### Agency-Side: Structured Responses + AI
+
+When an agency submits a candidate, they now see:
+- **Checkboxes per criterion** — yes/no for each requirement, grouped by category
+- **CV upload** — goes to Supabase Storage, then gets parsed by Claude
+- **AI-generated profile summary** — diplomas, work experience, last hospital
+- **Vacation dates** — specific to this placement period
+
+The CV parsing lives in `src/lib/cv-parser.ts`. Claude analyzes the extracted text and returns structured data (diplomas with dates, BIG registration, work experience list). If parsing fails, the system degrades gracefully.
+
+### Match Scoring
+
+Formula: `score = (met_required / total_required) × 70 + (met_optional / total_optional) × 30`
+
+This creates a 0-100 score per candidate. The org review page sorts by match score and shows:
+- Green badge (80%+), Orange (50-79%), Red (<50%)
+- Per-criterion green/red dots
+- AI profile summary in a purple card
+- Cost estimation (monthly + total period + estimated ORT)
+
+### Cost Estimation
+
+`src/lib/cost-estimation.ts` calculates:
+- Monthly = hourly rate × hours/week × 4.33
+- Total = hourly rate × hours/week × weeks in period
+- ORT estimate = total × 15%
+
+This appears in every candidate card so hospitals can instantly compare costs.
+
+### New Files Added
+
+| File | Purpose |
+|------|---------|
+| `src/lib/types/criteria.ts` | TypeScript interfaces for criteria system |
+| `src/lib/criteria-templates.ts` | Function-specific criteria templates |
+| `src/lib/cv-parser.ts` | Claude API integration for CV analysis |
+| `src/lib/cost-estimation.ts` | Cost calculation utility |
+| `src/lib/api.ts` | Typed fetch wrapper |
+| `src/components/criteria-selector.tsx` | Reusable criteria checklist |
+| `src/components/providers.tsx` | TanStack React Query provider |
+| `src/app/api/candidates/route.ts` | Candidates CRUD API |
+| `src/app/api/requests/[id]/route.ts` | Single request detail API |
+| `src/app/api/upload/route.ts` | File upload to Supabase Storage |
+| `src/app/api/cv-parse/route.ts` | CV parsing endpoint |
+
+### Pages Wired to Real APIs
+
+All request, submission, and candidate pages now fetch from real APIs instead of mock data. The hours and invoices pages still use mocks in the frontend (their backend APIs are ready).
+
+### Architecture Lessons
+
+- **JSONB is perfect for MVP**: Don't normalize until you need to. Criteria are tightly coupled to requests — they travel together.
+- **AI features need graceful degradation**: CV parser returns fallback data if Claude fails. System works without AI.
+- **Type-first development**: Defining `RequestCriterion`, `CriterionResponse`, `CvParsedData` interfaces first made everything flow naturally.
+- **pdf-parse v4 broke everything**: The API changed completely from v3. We fell back to basic text extraction for the demo.
+
 ## What's Next? (Future Improvements)
 
 1. **Real-time Updates** - Supabase Realtime could notify agencies instantly when new requests drop

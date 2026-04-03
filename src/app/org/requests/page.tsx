@@ -1,56 +1,32 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Calendar, Clock, Users, ChevronRight } from "lucide-react";
+import { Plus, Calendar, Clock, Users, ChevronRight, Loader2 } from "lucide-react";
 
-// Mock data
-const requests = [
-  {
-    id: "1",
-    title: "Verpleegkundige IC",
-    department: "Intensive Care",
-    functionRequired: "Verpleegkundige",
-    startDate: "2024-02-01",
-    endDate: "2024-04-30",
-    hoursPerWeek: 32,
-    status: "open" as const,
-    submissionCount: 3,
-    createdAt: "2024-01-28",
-  },
-  {
-    id: "2",
-    title: "Verzorgende IG Thuiszorg",
-    department: "Thuiszorg Noord",
-    functionRequired: "Verzorgende IG",
-    startDate: "2024-02-15",
-    endDate: "2024-05-31",
-    hoursPerWeek: 24,
-    status: "in_review" as const,
-    submissionCount: 5,
-    createdAt: "2024-01-25",
-  },
-  {
-    id: "3",
-    title: "Verpleegkundige SEH",
-    department: "Spoedeisende Hulp",
-    functionRequired: "Verpleegkundige",
-    startDate: "2024-03-01",
-    endDate: "2024-06-30",
-    hoursPerWeek: 36,
-    status: "filled" as const,
-    submissionCount: 4,
-    createdAt: "2024-01-20",
-  },
-];
+interface RequestItem {
+  id: string;
+  title: string;
+  department?: string;
+  functionRequired: string;
+  startDate: string;
+  endDate: string;
+  hoursPerWeek: number;
+  status: 'open' | 'in_review' | 'filled' | 'cancelled';
+  submissions?: { id: string }[];
+  createdAt: string;
+}
 
 const statusConfig = {
-  open: { label: "Open", variant: "default" as const, color: "bg-blue-100 text-blue-800" },
-  in_review: { label: "In behandeling", variant: "secondary" as const, color: "bg-orange-100 text-orange-800" },
-  filled: { label: "Ingevuld", variant: "secondary" as const, color: "bg-emerald-100 text-emerald-800" },
-  cancelled: { label: "Geannuleerd", variant: "destructive" as const, color: "bg-gray-100 text-gray-800" },
+  open: { label: "Open", color: "bg-blue-100 text-blue-800" },
+  in_review: { label: "In behandeling", color: "bg-orange-100 text-orange-800" },
+  filled: { label: "Ingevuld", color: "bg-emerald-100 text-emerald-800" },
+  cancelled: { label: "Geannuleerd", color: "bg-gray-100 text-gray-800" },
 };
 
 function formatDate(dateString: string) {
@@ -61,8 +37,9 @@ function formatDate(dateString: string) {
   });
 }
 
-function RequestCard({ request }: { request: typeof requests[0] }) {
+function RequestCard({ request }: { request: RequestItem }) {
   const status = statusConfig[request.status];
+  const submissionCount = request.submissions?.length || 0;
 
   return (
     <Link href={`/org/requests/${request.id}`}>
@@ -87,7 +64,7 @@ function RequestCard({ request }: { request: typeof requests[0] }) {
                 </div>
                 <div className="flex items-center gap-1">
                   <Users className="h-4 w-4" />
-                  <span>{request.submissionCount} kandidaten</span>
+                  <span>{submissionCount} kandidaten</span>
                 </div>
               </div>
             </div>
@@ -100,9 +77,40 @@ function RequestCard({ request }: { request: typeof requests[0] }) {
 }
 
 export default function OrgRequestsPage() {
+  const [requests, setRequests] = useState<RequestItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchRequests() {
+      try {
+        const res = await fetch('/api/requests');
+        if (res.ok) {
+          const data = await res.json();
+          setRequests(data.data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching requests:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchRequests();
+  }, []);
+
   const openRequests = requests.filter((r) => r.status === "open");
   const inReviewRequests = requests.filter((r) => r.status === "in_review");
   const filledRequests = requests.filter((r) => r.status === "filled");
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full">
+        <Header title="Aanvragen" subtitle="Beheer uw personeelsaanvragen" />
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -136,9 +144,21 @@ export default function OrgRequestsPage() {
             </div>
 
             <TabsContent value="all" className="mt-6 space-y-4">
-              {requests.map((request) => (
-                <RequestCard key={request.id} request={request} />
-              ))}
+              {requests.length > 0 ? (
+                requests.map((request) => (
+                  <RequestCard key={request.id} request={request} />
+                ))
+              ) : (
+                <Card className="p-8 text-center text-gray-500">
+                  <p>Nog geen aanvragen. Maak uw eerste aanvraag aan.</p>
+                  <Button asChild className="mt-4 bg-blue-600 hover:bg-blue-700">
+                    <Link href="/org/requests/new">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Nieuwe Aanvraag
+                    </Link>
+                  </Button>
+                </Card>
+              )}
             </TabsContent>
 
             <TabsContent value="open" className="mt-6 space-y-4">
@@ -149,12 +169,6 @@ export default function OrgRequestsPage() {
               ) : (
                 <Card className="p-8 text-center text-gray-500">
                   <p>Geen open aanvragen</p>
-                  <Button asChild className="mt-4 bg-blue-600 hover:bg-blue-700">
-                    <Link href="/org/requests/new">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Nieuwe Aanvraag
-                    </Link>
-                  </Button>
                 </Card>
               )}
             </TabsContent>

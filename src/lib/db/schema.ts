@@ -64,6 +64,8 @@ export const candidates = pgTable('candidates', {
   bigNumber: varchar('big_number', { length: 50 }), // BIG registration number
   qualifications: jsonb('qualifications').$type<string[]>(),
   cvUrl: text('cv_url'),
+  cvParsedData: jsonb('cv_parsed_data').$type<import('@/lib/types/criteria').CvParsedData>(),
+  cvParsedAt: timestamp('cv_parsed_at'),
   notes: text('notes'),
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -83,6 +85,10 @@ export const requests = pgTable('requests', {
   endDate: date('end_date').notNull(),
   hoursPerWeek: integer('hours_per_week').notNull(),
   specialRequirements: text('special_requirements'),
+  criteria: jsonb('criteria').$type<import('@/lib/types/criteria').RequestCriterion[]>(),
+  schedulePreferences: text('schedule_preferences'),
+  vacationDates: text('vacation_dates'),
+  maxTravelDistance: integer('max_travel_distance'),
   status: varchar('status', { length: 20 }).notNull().$type<'open' | 'in_review' | 'filled' | 'cancelled'>().default('open'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   broadcastAt: timestamp('broadcast_at'),
@@ -99,9 +105,14 @@ export const submissions = pgTable('submissions', {
   cvUrl: text('cv_url'), // Can override candidate's default CV
   notes: text('notes'),
   additionalInfo: text('additional_info'),
+  criteriaResponses: jsonb('criteria_responses').$type<import('@/lib/types/criteria').CriterionResponse[]>(),
+  candidateVacationDates: text('candidate_vacation_dates'),
+  cvParsedData: jsonb('cv_parsed_data').$type<import('@/lib/types/criteria').CvParsedData>(),
+  profileSummary: text('profile_summary'),
+  matchScore: integer('match_score'),
   status: varchar('status', { length: 20 }).notNull().$type<'pending' | 'accepted' | 'rejected' | 'withdrawn'>().default('pending'),
-  rejectionReason: text('rejection_reason'), // Reason shown to agency when auto-rejected (e.g., "Betere match gevonden")
-  meetingAvailability: text('meeting_availability'), // Org's suggested meeting times for kennismakingsgesprek (set on acceptance)
+  rejectionReason: text('rejection_reason'),
+  meetingAvailability: text('meeting_availability'),
   submittedAt: timestamp('submitted_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

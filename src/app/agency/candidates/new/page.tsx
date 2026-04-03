@@ -24,6 +24,7 @@ const FUNCTIONS = [
   "Verpleegkundige IC",
   "Verpleegkundige SEH",
   "Verpleegkundige OK",
+  "Anesthesiemedewerker",
   "Verzorgende IG",
   "Helpende",
   "Gespecialiseerd Verpleegkundige",
@@ -47,6 +48,21 @@ export default function NewCandidatePage() {
     notes: "",
   });
 
+  const handleCvUpload = async (file: File): Promise<string | undefined> => {
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      if (res.ok) {
+        const data = await res.json();
+        return data.data.url;
+      }
+    } catch {
+      // upload failed silently
+    }
+    return undefined;
+  };
+
   const handleSubmit = async () => {
     if (!formData.firstName || !formData.lastName || !formData.function) {
       toast({
@@ -58,14 +74,48 @@ export default function NewCandidatePage() {
     }
 
     setIsSubmitting(true);
-    await new Promise((r) => setTimeout(r, 1500));
+    try {
+      let cvUrl: string | undefined;
+      if (cvFile) {
+        cvUrl = await handleCvUpload(cvFile);
+      }
 
-    toast({
-      title: "Kandidaat toegevoegd",
-      description: `${formData.firstName} ${formData.lastName} is toegevoegd aan uw kandidatenpool.`,
-    });
+      const res = await fetch('/api/candidates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email || undefined,
+          phone: formData.phone || undefined,
+          function: formData.function,
+          bigNumber: formData.bigNumber || undefined,
+          cvUrl,
+          notes: formData.notes || undefined,
+        }),
+      });
 
-    router.push("/agency/candidates");
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Kon kandidaat niet toevoegen');
+      }
+
+      toast({
+        title: "Kandidaat toegevoegd",
+        description: `${formData.firstName} ${formData.lastName} is toegevoegd aan uw kandidatenpool.`,
+      });
+
+      router.push("/agency/candidates");
+    } catch (error) {
+      toast({
+        title: "Fout",
+        description: error instanceof Error ? error.message : "Er is iets misgegaan",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
