@@ -35,7 +35,7 @@ export default function RegisterOrganizationPage() {
         />
         <p className="text-center text-sm text-gray-600 mt-6">
           Bent u een uitzendbureau?{" "}
-          <Link href="/register/agency" className="text-blue-600 hover:underline font-medium">
+          <Link href="/auth/register/agency" className="text-blue-600 hover:underline font-medium">
             Registreer als bureau
           </Link>
         </p>
