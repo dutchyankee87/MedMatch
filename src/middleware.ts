@@ -30,6 +30,9 @@ export default clerkMiddleware(async (auth, req) => {
       if (userRole === 'agency_user') {
         return NextResponse.redirect(new URL('/agency/dashboard', req.url));
       }
+      // User is logged in but has no recognized role yet — send to a default dashboard
+      // This prevents Clerk's <SignUp/> from erroring when already signed in
+      return NextResponse.redirect(new URL('/org/dashboard', req.url));
     }
     return NextResponse.next();
   }
