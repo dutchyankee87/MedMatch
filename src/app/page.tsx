@@ -54,10 +54,17 @@ export default function Home() {
               <Link href="/auth/login">Inloggen</Link>
             </Button>
             <Button
+              variant="outline"
+              asChild
+              className="hidden sm:inline-flex border-emerald-600 text-emerald-600 hover:bg-emerald-50"
+            >
+              <Link href="/auth/register/agency">Bureau Registreren</Link>
+            </Button>
+            <Button
               asChild
               className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/25"
             >
-              <Link href="/auth/register/organization">Gratis Starten</Link>
+              <Link href="/auth/register/organization">Organisatie Registreren</Link>
             </Button>
             {/* Mobile menu button - placeholder for Sheet component */}
             <Button variant="ghost" size="icon" className="md:hidden">
