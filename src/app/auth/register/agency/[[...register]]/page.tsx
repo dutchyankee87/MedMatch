@@ -36,7 +36,7 @@ export default function RegisterAgencyPage() {
         />
         <p className="text-center text-sm text-gray-600 mt-6">
           Bent u een zorgorganisatie?{" "}
-          <Link href="/register/organization" className="text-emerald-600 hover:underline font-medium">
+          <Link href="/auth/register/organization" className="text-emerald-600 hover:underline font-medium">
             Registreer als organisatie
           </Link>
         </p>
